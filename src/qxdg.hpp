@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace xdg {
+namespace qxdg {
   namespace fs = std::filesystem;
   using path = std::filesystem::path;
 
@@ -28,8 +28,9 @@ namespace xdg {
     const base &b, const std::string &name, const path &p,
     const bool create=false, const bool force_home=false
   );
+
   [[deprecated("not strictly XDG related")]]
-  std::vector<xdg::path> get_files_in_directory(const path &directories);
+  std::vector<path> get_files_in_directory(const path &directories);
   [[deprecated("not strictly XDG related")]]
   std::vector<path> search_data_dirs(
     const base &b, const std::string &name, const std::regex &re

@@ -6,8 +6,8 @@
 
 #include "qxdg.hpp"
 
-std::vector<xdg::path> split_dirs(std::string s) {
-  std::vector<xdg::path> dirs;
+std::vector<qxdg::path> split_dirs(std::string s) {
+  std::vector<qxdg::path> dirs;
 
   std::size_t pos = 0;
   std::string dir;
@@ -23,7 +23,7 @@ std::vector<xdg::path> split_dirs(std::string s) {
   return dirs;
 }
 
-xdg::base xdg::get_base_directories() {
+qxdg::base qxdg::get_base_directories() {
   base base_dirs;
   base_dirs.home = std::getenv("HOME");
 
@@ -73,7 +73,7 @@ xdg::base xdg::get_base_directories() {
   return base_dirs;
 }
 
-std::optional<xdg::path> xdg::get_data_path(
+std::optional<qxdg::path> qxdg::get_data_path(
   const base &b, const std::string &name, const path &p,
   const bool create, const bool force_home
 ) {
@@ -103,7 +103,7 @@ std::optional<xdg::path> xdg::get_data_path(
   return {};
 }
 
-std::vector<xdg::path> xdg::get_files_in_directory(const path &directory) {
+std::vector<qxdg::path> qxdg::get_files_in_directory(const path &directory) {
   std::vector<path> files;
 
   if (fs::is_directory(directory)) {
@@ -121,7 +121,7 @@ std::vector<xdg::path> xdg::get_files_in_directory(const path &directory) {
   return files;
 }
 
-std::vector<xdg::path> xdg::search_data_dirs(
+std::vector<qxdg::path> qxdg::search_data_dirs(
   const base &b, const std::string &name, const std::regex &re
 ) {
   std::vector<path> tmp_dirs;

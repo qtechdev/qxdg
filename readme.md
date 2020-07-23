@@ -15,17 +15,17 @@ https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 ## usage
 Environment variables must be loaded first:
 ```
-xdg::base base_dirs = xdg::get_base_directories();
+qxdg::base base_dirs = qxdg::get_base_directories();
 ```
 
 Then a path can be found according to the XDG priority:
 ```
 std::string name = "test_program";
-xdg::path file_path = "shaders/vshader.glsl";
+qxdg::path file_path = "shaders/vshader.glsl";
 bool create = false;
 bool force_home = false;
 
-std::optional<xdg::path> path = xdg::get_data_path(
+std::optional<qxdg::path> path = qxdg::get_data_path(
   base_dirs, name, file_path, create, force_home
 )
 ```
