@@ -8,9 +8,10 @@ LIB_VER=${LIB_PATH}.${V_MAJOR}.${V_MINOR}.${V_MICRO}
 
 CXX=g++
 LD_FLAGS=-Wl,-soname,${LIB_NAME} -shared
-CXX_FLAGS=-std=c++17 -fPIC -I./headers
+CXX_FLAGS=-std=c++17 -fPIC -Wall -Wextra -pedantic
 
-SOURCES=$(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
+SOURCES=$(wildcard src/*.cpp)
+HEADERS=$(wildcard src/*.hpp)
 OBJECTS=$(patsubst src/%,build/%,${SOURCES:.cpp=.o})
 DIRS=$(filter-out build/,$(sort $(dir ${OBJECTS}))) build/include
 
@@ -42,7 +43,7 @@ clean:
 .PHONY: install
 install:
 	cp ${LIB_VER} /usr/local/lib
-	cp -r headers /usr/local/include/${NAME}
+	cp -r ${HEADERS} /usr/local/include/${NAME}
 
 .PHONY: uninstall
 uninstall:
