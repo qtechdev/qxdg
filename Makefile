@@ -10,25 +10,49 @@ CXX=g++
 LD_FLAGS=-Wl,-soname,${LIB_NAME} -shared
 CXX_FLAGS=-std=c++17 -fPIC -Wall -Wextra -pedantic
 
+TESTS_LD_FLAGS=${LIB_VER}
+TESTS_CXX_FLAGS=-std=c++17 -Wall -Wextra -pedantic -Isrc/
+
 SOURCES=$(wildcard src/*.cpp)
 HEADERS=$(wildcard src/*.hpp)
 OBJECTS=$(patsubst src/%,build/%,${SOURCES:.cpp=.o})
-DIRS=$(filter-out build/,$(sort $(dir ${OBJECTS}))) build/include
+DIRS=$(sort $(dir ${OBJECTS})) build/include
+
+TEST_SOURCES=$(wildcard tests/*.cpp)
+TEST_OBJECTS=$(addprefix build/,${TEST_SOURCES:.cpp=.o})
+TESTS=$(addprefix out/,${TEST_SOURCES:.cpp=})
+
+DIRS+=$(sort $(dir ${TEST_OBJECTS})) $(sort $(dir ${TESTS}))
 
 ifdef DEBUG
 CXX_FLAGS += -g -DDEBUG
+TESTS_CXX_FLAGS += -g -DDEBUG
 endif
 ifndef DEBUG
 CXX_FLAGS += -O2
+TESTS_CXX_FLAGS += -O2
 endif
 
+.PHONY: all
 all: dirs ${LIB_VER}
 
+.PHONY: tests
+tests: all ${TESTS}
+
+test_%: out/tests/%
+	LD_PRELOAD=${LIB_VER} $<
+
 ${LIB_VER}: ${OBJECTS}
-	${CXX} $^  ${LD_FLAGS} -o $@
+	${CXX} $^ ${LD_FLAGS} -o $@
 
 build/%.o: src/%.cpp
 	${CXX} $< ${CXX_FLAGS} -c -o $@
+
+out/tests/%: build/tests/%.o
+	${CXX} $^ ${TESTS_LD_FLAGS} -o $@
+
+build/tests/%.o: tests/%.cpp
+	${CXX} $< ${TESTS_CXX_FLAGS} -c -o $@
 
 .PHONY: dirs
 dirs:
