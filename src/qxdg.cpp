@@ -6,8 +6,8 @@
 
 #include "qxdg.hpp"
 
-std::vector<xdg::path_t> split_dirs(std::string s) {
-  std::vector<xdg::path_t> dirs;
+std::vector<qxdg::path> split_dirs(std::string s) {
+  std::vector<qxdg::path> dirs;
 
   std::size_t pos = 0;
   std::string dir;
@@ -23,7 +23,7 @@ std::vector<xdg::path_t> split_dirs(std::string s) {
   return dirs;
 }
 
-xdg::base xdg::get_base_directories() {
+qxdg::base qxdg::get_base_directories() {
   base base_dirs;
   base_dirs.home = std::getenv("HOME");
 
@@ -73,40 +73,38 @@ xdg::base xdg::get_base_directories() {
   return base_dirs;
 }
 
-std::optional<xdg::path_t> xdg::get_data_path(
-  const base &b, const std::string &name, const path_t &p, const bool create
+std::optional<qxdg::path> qxdg::get_data_path(
+  const base &b, const std::string &name, const path &p,
+  const bool create, const bool force_home
 ) {
-  path_t home_path = b.xdg_data_home / name / p;
+  path home_path = b.xdg_data_home / name / p;
   if (fs::is_regular_file(home_path)) {
     return home_path;
+  }
+
+  if (!force_home) {
+    for (const auto &dir : b.xdg_data_dirs) {
+      path system_path = dir / name / p;
+      if (fs::is_regular_file(system_path)) {
+        return system_path;
+      }
+    }
   }
 
   if (create) {
     if (!fs::exists(home_path)) {
       fs::create_directories(home_path.parent_path());
-      std::ofstream(home_path);
+      std::ofstream home_path;
     }
 
     return home_path;
   }
 
-  for (const auto &dir : b.xdg_data_dirs) {
-    path_t system_path = dir / name / p;
-    if (fs::is_regular_file(system_path)) {
-      return system_path;
-    }
-  }
-
-  path_t cwd_path = path_t("./data") / p;
-  if (fs::is_regular_file(cwd_path)) {
-    return cwd_path;
-  }
-
   return {};
 }
 
-std::vector<xdg::path_t> xdg::get_files_in_directory(const path_t &directory) {
-  std::vector<path_t> files;
+std::vector<qxdg::path> qxdg::get_files_in_directory(const path &directory) {
+  std::vector<path> files;
 
   if (fs::is_directory(directory)) {
     for (const auto &entry : fs::directory_iterator(directory)) {
@@ -123,17 +121,17 @@ std::vector<xdg::path_t> xdg::get_files_in_directory(const path_t &directory) {
   return files;
 }
 
-std::vector<xdg::path_t> xdg::search_data_dirs(
+std::vector<qxdg::path> qxdg::search_data_dirs(
   const base &b, const std::string &name, const std::regex &re
 ) {
-  std::vector<path_t> tmp_dirs;
+  std::vector<path> tmp_dirs;
   tmp_dirs.push_back(b.xdg_data_home / name);
   for (const auto &p : b.xdg_data_dirs) {
     tmp_dirs.push_back(p / name);
   }
   tmp_dirs.push_back("./data");
 
-  std::vector<path_t> tmp_files;
+  std::vector<path> tmp_files;
   for (const auto &d : tmp_dirs) {
     for (const auto &f : get_files_in_directory(d)) {
       tmp_files.push_back(f);
@@ -141,22 +139,12 @@ std::vector<xdg::path_t> xdg::search_data_dirs(
   }
 
 
-  std::vector<path_t> files;
+  std::vector<path> files;
   for (const auto &p : tmp_files) {
     if (std::regex_search(p.string(), re)) {
       files.push_back(p);
     }
   }
-  // for (const auto &path : paths) {
-  //   for (const auto &p : xdg::fs::directory_iterator(path)) {
-  //     if (!xdg::fs::is_regular_file(p)) {
-  //       continue;
-  //     }
-  //     if (std::regex_search(p.path().string(), re)) {
-  //       files.push_back(p.path());
-  //     }
-  //   }
-  // }
 
   return files;
 }
