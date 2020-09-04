@@ -1,8 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <qfio/qfio.hpp>
 
 #include "qxdg.hpp"
 
@@ -23,7 +26,7 @@ std::vector<qxdg::path> split_dirs(std::string s) {
   return dirs;
 }
 
-qxdg::base qxdg::get_base_directories() {
+qxdg::base qxdg::get_base_directories(bool include_local) {
   base base_dirs;
   base_dirs.home = std::getenv("HOME");
 
@@ -55,6 +58,11 @@ qxdg::base qxdg::get_base_directories() {
     base_dirs.xdg_config_dirs = split_dirs(xdg_config_dirs);
   }
 
+  if (include_local) {
+    base_dirs.xdg_data_dirs.push_back("./data");
+    base_dirs.xdg_config_dirs.push_back("./config");
+  }
+
   char *xdg_cache_home = std::getenv("XDG_CACHE_HOME");
   if (xdg_cache_home == nullptr) {
     base_dirs.xdg_cache_home = base_dirs.home / ".cache";
@@ -64,26 +72,27 @@ qxdg::base qxdg::get_base_directories() {
 
   char *xdg_runtime_dir = std::getenv("XDG_RUNTIME_DIR");
   if (xdg_runtime_dir == nullptr) {
-    // create runtime dir or throw
+    throw std::runtime_error("XDG_RUNTIME_DIR not found");
   } else {
-    // make sure directory is valid
+    // assume directory is valid
     base_dirs.xdg_runtime_dir = xdg_runtime_dir;
   }
 
   return base_dirs;
 }
 
-std::optional<qxdg::path> qxdg::get_data_path(
-  const base &b, const std::string &name, const path &p,
+std::optional<qxdg::path> qxdg::get_path(
+  const path &xdg_home, const std::vector<path> &xdg_dirs,
+  const std::string &name, const path &p,
   const bool create, const bool force_home
 ) {
-  path home_path = b.xdg_data_home / name / p;
+  path home_path = xdg_home / name / p;
   if (fs::is_regular_file(home_path)) {
     return home_path;
   }
 
   if (!force_home) {
-    for (const auto &dir : b.xdg_data_dirs) {
+    for (const auto &dir : xdg_dirs) {
       path system_path = dir / name / p;
       if (fs::is_regular_file(system_path)) {
         return system_path;
@@ -103,41 +112,40 @@ std::optional<qxdg::path> qxdg::get_data_path(
   return {};
 }
 
-std::vector<qxdg::path> qxdg::get_files_in_directory(const path &directory) {
-  std::vector<path> files;
-
-  if (fs::is_directory(directory)) {
-    for (const auto &entry : fs::directory_iterator(directory)) {
-      if (fs::is_regular_file(entry.path())) {
-        files.push_back(entry.path());
-      } else if (fs::is_directory(entry.path())){
-        for (const auto &file : get_files_in_directory(entry.path())) {
-          files.push_back(file);
-        }
-      }
-    }
-  }
-
-  return files;
+std::optional<qxdg::path> qxdg::get_data_path(
+  const base &b, const std::string &name, const path &p,
+  const bool create, const bool force_home
+) {
+  return get_path(
+    b.xdg_data_home, b.xdg_data_dirs, name, p, create, force_home
+  );
 }
 
-std::vector<qxdg::path> qxdg::search_data_dirs(
-  const base &b, const std::string &name, const std::regex &re
+std::optional<qxdg::path> qxdg::get_config_path(
+  const base &b, const std::string &name, const path &p,
+  const bool create, const bool force_home
+) {
+  return get_path(
+    b.xdg_config_home, b.xdg_config_dirs, name, p, create, force_home
+  );
+}
+
+std::vector<qxdg::path> qxdg::search_dirs(
+  const path &xdg_home, const std::vector<path> &xdg_dirs,
+  const std::string &name, const std::regex &re
 ) {
   std::vector<path> tmp_dirs;
-  tmp_dirs.push_back(b.xdg_data_home / name);
-  for (const auto &p : b.xdg_data_dirs) {
+  tmp_dirs.push_back(xdg_home / name);
+  for (const auto &p : xdg_dirs) {
     tmp_dirs.push_back(p / name);
   }
-  tmp_dirs.push_back("./data");
 
   std::vector<path> tmp_files;
   for (const auto &d : tmp_dirs) {
-    for (const auto &f : get_files_in_directory(d)) {
+    for (const auto &f : qfio::get_files_in_directory(d)) {
       tmp_files.push_back(f);
     }
   }
-
 
   std::vector<path> files;
   for (const auto &p : tmp_files) {
@@ -147,4 +155,16 @@ std::vector<qxdg::path> qxdg::search_data_dirs(
   }
 
   return files;
+}
+
+std::vector<qxdg::path> qxdg::search_data_dirs(
+  const base &b, const std::string &name, const std::regex &re
+) {
+  return search_dirs(b.xdg_data_home, b.xdg_data_dirs, name, re);
+}
+
+std::vector<qxdg::path> qxdg::search_config_dirs(
+  const base &b, const std::string &name, const std::regex &re
+) {
+  return search_dirs(b.xdg_config_home, b.xdg_config_dirs, name, re);
 }

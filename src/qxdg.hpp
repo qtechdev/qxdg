@@ -22,17 +22,34 @@ namespace qxdg {
     path xdg_runtime_dir;
   };
 
-  base get_base_directories();
+  base get_base_directories(bool include_local=false);
+
+  std::optional<path> get_path(
+    const path &xdg_home, const std::vector<path> &xdg_dirs,
+    const std::string &name, const path &p,
+    const bool create, const bool force_home
+  );
 
   std::optional<path> get_data_path(
     const base &b, const std::string &name, const path &p,
     const bool create=false, const bool force_home=false
   );
 
-  [[deprecated("not strictly XDG related")]]
-  std::vector<path> get_files_in_directory(const path &directories);
-  [[deprecated("not strictly XDG related")]]
+  std::optional<path> get_config_path(
+    const base &b, const std::string &name, const path &p,
+    const bool create=false, const bool force_home=false
+  );
+
+  std::vector<path> search_dirs(
+    const path &xdg_home, const std::vector<path> &xdg_dirs,
+    const std::string &name, const std::regex &re
+  );
+
   std::vector<path> search_data_dirs(
+    const base &b, const std::string &name, const std::regex &re
+  );
+
+  std::vector<path> search_config_dirs(
     const base &b, const std::string &name, const std::regex &re
   );
 }
