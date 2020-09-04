@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -69,9 +70,9 @@ qxdg::base qxdg::get_base_directories(bool include_local) {
 
   char *xdg_runtime_dir = std::getenv("XDG_RUNTIME_DIR");
   if (xdg_runtime_dir == nullptr) {
-    // create runtime dir or throw
+    throw std::runtime_error("XDG_RUNTIME_DIR not found");
   } else {
-    // make sure directory is valid
+    // assume directory is valid
     base_dirs.xdg_runtime_dir = xdg_runtime_dir;
   }
 
