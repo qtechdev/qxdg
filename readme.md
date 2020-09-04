@@ -4,13 +4,7 @@ Basic implementation of the XDG base directory specification.
 https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 ## TODO:
-- [x] rename `path_t` as any `*_t` name is apparently reserved
-- [x] verify `XDG_RUNTIME_DIR` is valid, otherwise throw
-- [x] add function to get config file path
-- [ ] add support for both text files (std::string) and binary data (std::vector<uint8_t>)
-- [x] get_files_in_directory does not belong here, move to `qfio`
 - [ ] function to copy file `XDG_*_DIRS` to `XDG_*_HOME`
-- [x] remove searching in the current directory? maybe use a flag?
 
 ## usage
 Environment variables must be loaded first:
