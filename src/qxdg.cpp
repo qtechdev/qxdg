@@ -81,17 +81,18 @@ qxdg::base qxdg::get_base_directories(bool include_local) {
   return base_dirs;
 }
 
-std::optional<qxdg::path> qxdg::get_data_path(
-  const base &b, const std::string &name, const path &p,
+std::optional<qxdg::path> qxdg::get_path(
+  const path &xdg_home, const std::vector<path> &xdg_dirs,
+  const std::string &name, const path &p,
   const bool create, const bool force_home
 ) {
-  path home_path = b.xdg_data_home / name / p;
+  path home_path = xdg_home / name / p;
   if (fs::is_regular_file(home_path)) {
     return home_path;
   }
 
   if (!force_home) {
-    for (const auto &dir : b.xdg_data_dirs) {
+    for (const auto &dir : xdg_dirs) {
       path system_path = dir / name / p;
       if (fs::is_regular_file(system_path)) {
         return system_path;
@@ -111,34 +112,22 @@ std::optional<qxdg::path> qxdg::get_data_path(
   return {};
 }
 
+std::optional<qxdg::path> qxdg::get_data_path(
+  const base &b, const std::string &name, const path &p,
+  const bool create, const bool force_home
+) {
+  return get_path(
+    b.xdg_data_home, b.xdg_data_dirs, name, p, create, force_home
+  );
+}
+
 std::optional<qxdg::path> qxdg::get_config_path(
   const base &b, const std::string &name, const path &p,
   const bool create, const bool force_home
 ) {
-  path home_path = b.xdg_config_home / name / p;
-  if (fs::is_regular_file(home_path)) {
-    return home_path;
-  }
-
-  if (!force_home) {
-    for (const auto &dir : b.xdg_config_dirs) {
-      path system_path = dir / name / p;
-      if (fs::is_regular_file(system_path)) {
-        return system_path;
-      }
-    }
-  }
-
-  if (create) {
-    if (!fs::exists(home_path)) {
-      fs::create_directories(home_path.parent_path());
-      std::ofstream home_path;
-    }
-
-    return home_path;
-  }
-
-  return {};
+  return get_path(
+    b.xdg_config_home, b.xdg_config_dirs, name, p, create, force_home
+  );
 }
 
 std::vector<qxdg::path> qxdg::search_data_dirs(
