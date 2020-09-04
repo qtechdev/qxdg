@@ -40,6 +40,11 @@ namespace qxdg {
     const bool create=false, const bool force_home=false
   );
 
+  std::vector<path> search_dirs(
+    const path &xdg_home, const std::vector<path> &xdg_dirs,
+    const std::string &name, const std::regex &re
+  );
+
   std::vector<path> search_data_dirs(
     const base &b, const std::string &name, const std::regex &re
   );

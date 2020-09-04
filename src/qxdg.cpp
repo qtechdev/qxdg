@@ -130,12 +130,13 @@ std::optional<qxdg::path> qxdg::get_config_path(
   );
 }
 
-std::vector<qxdg::path> qxdg::search_data_dirs(
-  const base &b, const std::string &name, const std::regex &re
+std::vector<qxdg::path> qxdg::search_dirs(
+  const path &xdg_home, const std::vector<path> &xdg_dirs,
+  const std::string &name, const std::regex &re
 ) {
   std::vector<path> tmp_dirs;
-  tmp_dirs.push_back(b.xdg_data_home / name);
-  for (const auto &p : b.xdg_data_dirs) {
+  tmp_dirs.push_back(xdg_home / name);
+  for (const auto &p : xdg_dirs) {
     tmp_dirs.push_back(p / name);
   }
 
@@ -145,7 +146,6 @@ std::vector<qxdg::path> qxdg::search_data_dirs(
       tmp_files.push_back(f);
     }
   }
-
 
   std::vector<path> files;
   for (const auto &p : tmp_files) {
@@ -157,28 +157,14 @@ std::vector<qxdg::path> qxdg::search_data_dirs(
   return files;
 }
 
+std::vector<qxdg::path> qxdg::search_data_dirs(
+  const base &b, const std::string &name, const std::regex &re
+) {
+  return search_dirs(b.xdg_data_home, b.xdg_data_dirs, name, re);
+}
+
 std::vector<qxdg::path> qxdg::search_config_dirs(
   const base &b, const std::string &name, const std::regex &re
 ) {
-  std::vector<path> tmp_dirs;
-  tmp_dirs.push_back(b.xdg_config_home / name);
-  for (const auto &p : b.xdg_config_dirs) {
-    tmp_dirs.push_back(p / name);
-  }
-
-  std::vector<path> tmp_files;
-  for (const auto &d : tmp_dirs) {
-    for (const auto &f : qfio::get_files_in_directory(d)) {
-      tmp_files.push_back(f);
-    }
-  }
-
-  std::vector<path> files;
-  for (const auto &p : tmp_files) {
-    if (std::regex_search(p.string(), re)) {
-      files.push_back(p);
-    }
-  }
-
-  return files;
+  return search_dirs(b.xdg_config_home, b.xdg_config_dirs, name, re);
 }
