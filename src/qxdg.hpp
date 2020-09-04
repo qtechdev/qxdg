@@ -29,10 +29,16 @@ namespace qxdg {
     const bool create=false, const bool force_home=false
   );
 
-  [[deprecated("not strictly XDG related")]]
-  std::vector<path> get_files_in_directory(const path &directories);
-  [[deprecated("not strictly XDG related")]]
+  std::optional<path> get_config_path(
+    const base &b, const std::string &name, const path &p,
+    const bool create=false, const bool force_home=false
+  );
+
   std::vector<path> search_data_dirs(
+    const base &b, const std::string &name, const std::regex &re
+  );
+
+  std::vector<path> search_config_dirs(
     const base &b, const std::string &name, const std::regex &re
   );
 }

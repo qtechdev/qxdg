@@ -103,22 +103,34 @@ std::optional<qxdg::path> qxdg::get_data_path(
   return {};
 }
 
-std::vector<qxdg::path> qxdg::get_files_in_directory(const path &directory) {
-  std::vector<path> files;
+std::optional<qxdg::path> qxdg::get_config_path(
+  const base &b, const std::string &name, const path &p,
+  const bool create, const bool force_home
+) {
+  path home_path = b.xdg_config_home / name / p;
+  if (fs::is_regular_file(home_path)) {
+    return home_path;
+  }
 
-  if (fs::is_directory(directory)) {
-    for (const auto &entry : fs::directory_iterator(directory)) {
-      if (fs::is_regular_file(entry.path())) {
-        files.push_back(entry.path());
-      } else if (fs::is_directory(entry.path())){
-        for (const auto &file : get_files_in_directory(entry.path())) {
-          files.push_back(file);
-        }
+  if (!force_home) {
+    for (const auto &dir : b.xdg_config_dirs) {
+      path system_path = dir / name / p;
+      if (fs::is_regular_file(system_path)) {
+        return system_path;
       }
     }
   }
 
-  return files;
+  if (create) {
+    if (!fs::exists(home_path)) {
+      fs::create_directories(home_path.parent_path());
+      std::ofstream home_path;
+    }
+
+    return home_path;
+  }
+
+  return {};
 }
 
 std::vector<qxdg::path> qxdg::search_data_dirs(
@@ -129,7 +141,6 @@ std::vector<qxdg::path> qxdg::search_data_dirs(
   for (const auto &p : b.xdg_data_dirs) {
     tmp_dirs.push_back(p / name);
   }
-  tmp_dirs.push_back("./data");
 
   std::vector<path> tmp_files;
   for (const auto &d : tmp_dirs) {
@@ -138,6 +149,32 @@ std::vector<qxdg::path> qxdg::search_data_dirs(
     }
   }
 
+
+  std::vector<path> files;
+  for (const auto &p : tmp_files) {
+    if (std::regex_search(p.string(), re)) {
+      files.push_back(p);
+    }
+  }
+
+  return files;
+}
+
+std::vector<qxdg::path> qxdg::search_config_dirs(
+  const base &b, const std::string &name, const std::regex &re
+) {
+  std::vector<path> tmp_dirs;
+  tmp_dirs.push_back(b.xdg_config_home / name);
+  for (const auto &p : b.xdg_config_dirs) {
+    tmp_dirs.push_back(p / name);
+  }
+
+  std::vector<path> tmp_files;
+  for (const auto &d : tmp_dirs) {
+    for (const auto &f : get_files_in_directory(d)) {
+      tmp_files.push_back(f);
+    }
+  }
 
   std::vector<path> files;
   for (const auto &p : tmp_files) {
