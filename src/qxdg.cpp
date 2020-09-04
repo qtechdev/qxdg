@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <qfio/qfio.hpp>
+
 #include "qxdg.hpp"
 
 std::vector<qxdg::path> split_dirs(std::string s) {
@@ -150,7 +152,7 @@ std::vector<qxdg::path> qxdg::search_data_dirs(
 
   std::vector<path> tmp_files;
   for (const auto &d : tmp_dirs) {
-    for (const auto &f : get_files_in_directory(d)) {
+    for (const auto &f : qfio::get_files_in_directory(d)) {
       tmp_files.push_back(f);
     }
   }
@@ -177,7 +179,7 @@ std::vector<qxdg::path> qxdg::search_config_dirs(
 
   std::vector<path> tmp_files;
   for (const auto &d : tmp_dirs) {
-    for (const auto &f : get_files_in_directory(d)) {
+    for (const auto &f : qfio::get_files_in_directory(d)) {
       tmp_files.push_back(f);
     }
   }

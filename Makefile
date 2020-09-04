@@ -8,7 +8,7 @@ LIB_PATH_V=${LIB_PATH}.${V_MAJOR}.${V_MINOR}.${V_MICRO}
 LIB_NAME_V=${LIB_NAME}.${V_MAJOR}.${V_MINOR}.${V_MICRO}
 
 CXX=g++
-LD_FLAGS=-Wl,-soname,${LIB_NAME}.${V_MAJOR} -shared
+LD_FLAGS=-Wl,-soname,${LIB_NAME}.${V_MAJOR} -shared -lqfio
 CXX_FLAGS=-std=c++17 -fPIC -Wall -Wextra -pedantic
 
 TESTS_LD_FLAGS=${LIB_PATH_V}
