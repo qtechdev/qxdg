@@ -10,7 +10,7 @@ https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 - [ ] add support for both text files (std::string) and binary data (std::vector<uint8_t>)
 - [x] get_files_in_directory does not belong here, move to `qfio`
 - [ ] function to copy file `XDG_*_DIRS` to `XDG_*_HOME`
-- [ ] remove searching in the current directory? maybe use a flag?
+- [x] remove searching in the current directory? maybe use a flag?
 
 ## usage
 Environment variables must be loaded first:

@@ -23,7 +23,7 @@ std::vector<qxdg::path> split_dirs(std::string s) {
   return dirs;
 }
 
-qxdg::base qxdg::get_base_directories() {
+qxdg::base qxdg::get_base_directories(bool include_local) {
   base base_dirs;
   base_dirs.home = std::getenv("HOME");
 
@@ -53,6 +53,11 @@ qxdg::base qxdg::get_base_directories() {
     base_dirs.xdg_config_dirs = {"/etc/xdg"};
   } else {
     base_dirs.xdg_config_dirs = split_dirs(xdg_config_dirs);
+  }
+
+  if (include_local) {
+    base_dirs.xdg_data_dirs.push_back("./data");
+    base_dirs.xdg_config_dirs.push_back("./config");
   }
 
   char *xdg_cache_home = std::getenv("XDG_CACHE_HOME");

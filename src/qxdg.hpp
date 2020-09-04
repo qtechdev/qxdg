@@ -22,7 +22,7 @@ namespace qxdg {
     path xdg_runtime_dir;
   };
 
-  base get_base_directories();
+  base get_base_directories(bool include_local=false);
 
   std::optional<path> get_data_path(
     const base &b, const std::string &name, const path &p,
